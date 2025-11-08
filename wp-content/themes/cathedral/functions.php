@@ -97,3 +97,66 @@ require get_template_directory() . '/inc/about.php';
 
 
 add_filter('use_widgets_block_editor', '__return_false');
+
+
+
+// Define the custom widget class
+class Custom_Widget extends WP_Widget {
+    function __construct() {
+        parent::__construct(
+            'custom_widget', // Base ID
+            __('Custom Widget', 'textdomain'), // Name
+            array('description' => __('A Custom Widget', 'textdomain'),) // Args
+        );
+    }
+
+    // Front-end display of widget
+    public function widget($args, $instance) {
+        echo $args['before_widget'];
+        if (!empty($instance['title'])) {
+            echo $args['before_title'] . apply_filters('widget_title', $instance['title']) . $args['after_title'];
+        }
+        echo __('Hello, World!', 'textdomain');
+        echo $args['after_widget'];
+    }
+
+    // Back-end widget form
+    public function form($instance) {
+        $title = !empty($instance['title']) ? $instance['title'] : __('New title', 'textdomain');
+        ?>
+        <p>
+            <label for="<?php echo esc_attr($this->get_field_id('title')); ?>"><?php _e(esc_attr('Title:')); ?></label>
+            <input class="widefat" id="<?php echo esc_attr($this->get_field_id('title')); ?>"
+                   name="<?php echo esc_attr($this->get_field_name('title')); ?>" type="text"
+                   value="<?php echo esc_attr($title); ?>">
+        </p>
+        <?php
+    }
+
+    // Sanitize widget form values as they are saved
+    public function update($new_instance, $old_instance) {
+        $instance = array();
+        $instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : '';
+        return $instance;
+    }
+}
+
+// Register the custom widget
+function register_custom_widget() {
+    register_widget('Custom_Widget');
+}
+add_action('widgets_init', 'register_custom_widget');
+
+// Register the sidebar
+function desktop_register_int() {
+    register_sidebar(array(
+        'name' => __('Main Sidebar', 'textdomain'),
+        'id' => 'Sidebar-1',
+        'description' => __('Widgets in this area will be shown on all posts and pages.', 'textdomain'),
+        'before_widget' => '<li id="%1$s" class="widget %2$s">',
+        'after_widget' => '</li>',
+        'before_title' => '<h2 class="widgettitle">',
+        'after_title' => '</h2>'
+    ));
+}
+add_action('widgets_init', 'desktop_register_int');
